@@ -1,20 +1,12 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     alias(libs.plugins.mapsplatform.secrets.plugin)
+    alias(libs.plugins.runique.android.application)
 }
 
 android {
     namespace = "com.juandgaines.runique"
-    compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.juandgaines.runique"
-        minSdk = 26
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -30,13 +22,7 @@ android {
 
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
+
     buildFeatures {
         compose = true
     }
@@ -52,8 +38,7 @@ android {
 
 dependencies {
 
-    // Coil
-    implementation(libs.coil.compose)
+
 
     // Compose
     implementation(libs.androidx.activity.compose)
@@ -66,6 +51,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
+
+    // Coil
+    implementation(libs.coil.compose)
 
     // Core
     implementation(libs.androidx.core.ktx)
