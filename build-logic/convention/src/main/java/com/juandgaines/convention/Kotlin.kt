@@ -35,6 +35,7 @@ internal fun Project.configureKotlinJvm(){
         targetCompatibility = VERSION_17
     }
 }
+
 private fun Project.configureKotlin(){
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         kotlinOptions {
