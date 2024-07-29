@@ -1,4 +1,4 @@
-package com.juandgaines.core.ui
+package com.juandgaines.core.presentation.ui
 
 import android.content.Context
 import androidx.annotation.StringRes

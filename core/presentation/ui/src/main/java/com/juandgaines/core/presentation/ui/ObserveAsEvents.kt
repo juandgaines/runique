@@ -1,4 +1,4 @@
-package com.juandgaines.core.ui
+package com.juandgaines.core.presentation.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
