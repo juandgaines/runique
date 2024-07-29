@@ -10,7 +10,7 @@ sealed interface DataError: Error {
         NO_INTERNET,
         PAYLOAD_TOO_LARGE,
         SERVER_ERROR,
-        SERIALIZATION_ERROR,
+        SERIALIZATION,
         UNKNOWN
     }
 
