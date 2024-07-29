@@ -2,12 +2,12 @@ package com.juandgaines.core.presentation.ui
 
 import com.juandgaines.core.domain.util.DataError
 import com.juandgaines.core.domain.util.DataError.LocalError.DISK_FULL
-import com.juandgaines.core.domain.util.DataError.NetworkError.NO_INTERNET
-import com.juandgaines.core.domain.util.DataError.NetworkError.PAYLOAD_TOO_LARGE
-import com.juandgaines.core.domain.util.DataError.NetworkError.REQUEST_TIMEOUT
-import com.juandgaines.core.domain.util.DataError.NetworkError.SERIALIZATION
-import com.juandgaines.core.domain.util.DataError.NetworkError.SERVER_ERROR
-import com.juandgaines.core.domain.util.DataError.NetworkError.TOO_MANY_REQUESTS
+import com.juandgaines.core.domain.util.DataError.Network.NO_INTERNET
+import com.juandgaines.core.domain.util.DataError.Network.PAYLOAD_TOO_LARGE
+import com.juandgaines.core.domain.util.DataError.Network.REQUEST_TIMEOUT
+import com.juandgaines.core.domain.util.DataError.Network.SERIALIZATION
+import com.juandgaines.core.domain.util.DataError.Network.SERVER_ERROR
+import com.juandgaines.core.domain.util.DataError.Network.TOO_MANY_REQUESTS
 import com.juandgaines.core.presentation.ui.UiText.StringResource
 
 fun DataError.asUiText(): UiText {
