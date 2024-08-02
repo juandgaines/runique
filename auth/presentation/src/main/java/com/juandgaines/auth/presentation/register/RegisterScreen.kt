@@ -121,7 +121,7 @@ fun RegisterScreen(
                 title = stringResource(id = R.string.email),
                 modifier = Modifier.fillMaxWidth(),
                 additionalInfo = stringResource(id = R.string.must_be_a_valid_email),
-                keyBoardType = KeyboardType.Email
+                keyboardType = KeyboardType.Email
             )
             Spacer(modifier = Modifier.height(16.dp))
 

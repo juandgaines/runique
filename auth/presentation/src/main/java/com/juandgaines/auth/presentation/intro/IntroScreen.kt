@@ -84,10 +84,9 @@ fun IntroScreen (
                 text = stringResource(id = R.string.sign_up),
                 isLoading = false,
                 onClick = {
-                    onAction(IntroAction.OnSignInClick)
+                    onAction(IntroAction.OnSignUpClick)
                 }
             )
-
 
         }
     }

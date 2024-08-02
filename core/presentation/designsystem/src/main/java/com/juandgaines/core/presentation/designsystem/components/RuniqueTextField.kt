@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text2.BasicTextField2
@@ -28,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,44 +47,45 @@ import com.juandgaines.core.presentation.designsystem.RuniqueTheme
 
 @Composable
 fun RuniqueTextField(
-    modifier: Modifier = Modifier,
-    state: TextFieldState = TextFieldState(),
-    startIcon: ImageVector? = null,
-    endIcon: ImageVector? = null,
+    state: TextFieldState,
+    startIcon: ImageVector?,
+    endIcon: ImageVector?,
     hint: String,
     title: String?,
+    modifier: Modifier = Modifier,
     error: String? = null,
-    keyBoardType: KeyboardType = KeyboardType.Text,
-    additionalInfo: String? = null,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    additionalInfo: String? = null
 ) {
-    var isFocus by remember { mutableStateOf(false) }
-
+    var isFocused by remember {
+        mutableStateOf(false)
+    }
     Column(
-        modifier = modifier,
+        modifier = modifier
     ) {
-        Row (
-            modifier= Modifier
+        Row(
+            modifier = Modifier
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = CenterVertically
-        ){
-            if(title != null){
-               Text(
-                   text =  title,
-                   color = MaterialTheme.colorScheme.onSurfaceVariant,
-               )
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if(title != null) {
+                Text(
+                    text = title,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-            if(error != null){
+            if(error != null) {
                 Text(
                     text = error,
                     color = MaterialTheme.colorScheme.error,
-                    fontSize = 12.sp,
+                    fontSize = 12.sp
                 )
-            }else if(additionalInfo != null){
+            } else if(additionalInfo != null) {
                 Text(
                     text = additionalInfo,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 12.sp,
+                    fontSize = 12.sp
                 )
             }
         }
@@ -90,46 +93,56 @@ fun RuniqueTextField(
         BasicTextField2(
             state = state,
             textStyle = LocalTextStyle.current.copy(
-                color = MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onBackground
             ),
             keyboardOptions = KeyboardOptions(
-                keyboardType = keyBoardType
+                keyboardType = keyboardType
             ),
             lineLimits = TextFieldLineLimits.SingleLine,
             cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
             modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(16.dp))
                 .background(
-                    if (isFocus) MaterialTheme.colorScheme.primary.copy(
-                        alpha = 0.05f
-                    ) else MaterialTheme.colorScheme.surface
+                    if (isFocused) {
+                        MaterialTheme.colorScheme.primary.copy(
+                            alpha = 0.05f
+                        )
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    }
                 )
                 .border(
                     width = 1.dp,
-                    color = if (isFocus) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    color = if (isFocused) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        Color.Transparent
+                    },
                     shape = RoundedCornerShape(16.dp)
                 )
                 .padding(12.dp)
                 .onFocusChanged {
-                    isFocus = it.isFocused
+                    isFocused = it.isFocused
                 },
             decorator = { innerBox ->
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = CenterVertically
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (startIcon != null) {
+                    if(startIcon != null) {
                         Icon(
                             imageVector = startIcon,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.padding(16.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
                     }
                     Box(
-                        modifier = Modifier.weight(1f)
-                    ){
-                        if (state.text.isEmpty()) {
+                        modifier = Modifier
+                            .weight(1f)
+                    ) {
+                        if(state.text.isEmpty() && !isFocused) {
                             Text(
                                 text = hint,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
@@ -140,22 +153,22 @@ fun RuniqueTextField(
                         }
                         innerBox()
                     }
-                    if(endIcon != null){
-                        Spacer(modifier = Modifier.padding(16.dp))
+                    if(endIcon != null) {
+                        Spacer(modifier = Modifier.width(16.dp))
                         Icon(
                             imageVector = endIcon,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(end = 8.dp)
+                            modifier = Modifier
+                                .padding(end = 8.dp)
                         )
                     }
                 }
-
             }
-
         )
     }
 }
+
 
 @Preview
 @Composable

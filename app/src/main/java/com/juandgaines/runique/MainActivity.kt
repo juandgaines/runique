@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
 import com.juandgaines.core.presentation.designsystem.RuniqueTheme
 
 class MainActivity : ComponentActivity() {
@@ -21,10 +22,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             RuniqueTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    val navHostController = rememberNavController()
+                    NavigationRoot(navHostController)
                 }
             }
         }
