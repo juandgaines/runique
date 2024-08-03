@@ -104,7 +104,7 @@ fun RegisterScreen(
             val annotadedString = buildAnnotatedString {
                 withStyle(
                     style = SpanStyle(
-                        color = RuniqueGray,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         fontFamily = Poppins
                     )
                 ) {

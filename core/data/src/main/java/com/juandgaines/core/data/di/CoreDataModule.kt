@@ -8,8 +8,8 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val coreDataModule = module {
-
-    singleOf(::HttpClientFactory)
-
+    single {
+        HttpClientFactory(get()).build()
+    }
     singleOf(::EncryptedSessionStorage).bind<SessionStorage>()
 }
