@@ -31,7 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.juandgaines.auth.presentation.R
+import com.juandgaines.auth.presentation.intro.IntroAction.OnSignUpClick
 import com.juandgaines.auth.presentation.login.LoginAction.OnLoginClick
+import com.juandgaines.auth.presentation.login.LoginAction.OnRegisterClick
 import com.juandgaines.core.presentation.designsystem.EmailIcon
 import com.juandgaines.core.presentation.designsystem.Poppins
 import com.juandgaines.core.presentation.designsystem.RuniqueTheme
@@ -75,7 +77,7 @@ fun LoginScreenRoot(
         state = viewModel.state,
         onAction = { action ->
             when(action){
-                OnLoginClick -> onSignUpClick()
+                OnRegisterClick -> onSignUpClick()
                 else -> Unit
             }
             viewModel.onAction(action)
