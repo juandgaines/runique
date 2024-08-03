@@ -1,6 +1,5 @@
 package com.juandgaines.core.data.auth
 
-import com.juandgaines.core.domain.AuthInfo
 import kotlinx.serialization.Serializable
 
 @Serializable
