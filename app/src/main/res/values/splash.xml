@@ -4,5 +4,7 @@
     <item name="windowSplashScreenBackground">#222222</item>
     <item name="windowSplashScreenAnimatedIcon">@drawable/logo_scaled_down</item>
     <item name="postSplashScreenTheme">@style/Theme.Runique</item>
+    <item name="windowActionBar">false</item>
+    <item name="windowNoTitle">true</item>
   </style>
 </resources>

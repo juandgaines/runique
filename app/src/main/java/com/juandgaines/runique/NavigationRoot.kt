@@ -10,6 +10,8 @@ import androidx.navigation.compose.navigation
 import com.juandgaines.auth.presentation.intro.IntroScreenRoot
 import com.juandgaines.auth.presentation.login.LoginScreenRoot
 import com.juandgaines.auth.presentation.register.RegisterScreenRoot
+import com.juandgaines.run.presentation.active_run.ActiveRunScreenRoot
+import com.juandgaines.run.presentation.active_run.ActiveRunViewModel
 import com.juandgaines.run.presentation.run_overview.RunOverviewScreenRoot
 
 @Composable
@@ -63,7 +65,7 @@ private fun NavGraphBuilder.authGraph(
         composable(route = "login"){
             LoginScreenRoot(
                 onLoginSuccess = {
-                    navController.navigate("run"){
+                    navController.navigate("run_overview"){
                         popUpTo("auth"){
                             inclusive = true
                         }
@@ -91,7 +93,15 @@ private fun NavGraphBuilder.runGraph(
         route = "run"
     ){
         composable(route = "run_overview"){
-            RunOverviewScreenRoot()
+            RunOverviewScreenRoot(
+                onStartRunClick = {
+                    navController.navigate("active_run")
+                }
+            )
+        }
+
+        composable(route = "active_run"){
+            ActiveRunScreenRoot()
         }
     }
 }

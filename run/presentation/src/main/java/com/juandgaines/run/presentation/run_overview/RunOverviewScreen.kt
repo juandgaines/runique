@@ -23,14 +23,24 @@ import com.juandgaines.core.presentation.designsystem.components.RuniqueScaffold
 import com.juandgaines.core.presentation.designsystem.components.RuniqueToolbar
 import com.juandgaines.core.presentation.designsystem.components.util.DropDownItem
 import com.juandgaines.run.presentation.R
+import com.juandgaines.run.presentation.run_overview.RunOverviewAction.OnAnalyticsClick
+import com.juandgaines.run.presentation.run_overview.RunOverviewAction.OnLogoutClick
+import com.juandgaines.run.presentation.run_overview.RunOverviewAction.OnStartClick
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun RunOverviewScreenRoot(
+    onStartRunClick: () -> Unit = {},
     viewModel: RunOverviewViewModel = koinViewModel(),
 ) {
     RunOverviewScreen(
-        onAction = viewModel::onAction
+        onAction = {
+            when(it){
+                OnStartClick -> onStartRunClick()
+                else-> Unit
+            }
+            viewModel.onAction(it)
+        }
     )
 }
 @Composable
@@ -57,8 +67,8 @@ fun RunOverviewScreen(
                 ),
                 onMenuItemClick = { index ->
                     when(index) {
-                        0 -> onAction(RunOverviewAction.OnAnalyticsClick)
-                        1 -> onAction(RunOverviewAction.OnLogoutClick)
+                        0 -> onAction(OnAnalyticsClick)
+                        1 -> onAction(OnLogoutClick)
                     }
                 },
                 startContent = {
@@ -73,7 +83,9 @@ fun RunOverviewScreen(
         }, floatingActionButton ={
             RuniqueFloatingActionButton(
                 icon = RunIcon,
-                onClick = {}
+                onClick = {
+                    onAction(OnStartClick)
+                },
             )
     }
     ) { paddingValues ->
