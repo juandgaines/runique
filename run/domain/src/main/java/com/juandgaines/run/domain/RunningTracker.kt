@@ -9,7 +9,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -21,7 +20,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.zip
 import kotlin.math.roundToInt
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion
 import kotlin.time.Duration.Companion.seconds
 
 class RunningTracker(
@@ -82,7 +80,7 @@ class RunningTracker(
                     currentLocations.last() + location
                 } else listOf(location)
                 val newLocationList = currentLocations.replaceLast(lastLocationList)
-                val distanceMeters = LocationDataCalculator.getTotalDistaneInMeters(
+                val distanceMeters = LocationDataCalculator.getTotalDistanceInMeters(
                     newLocationList
                 )
                 val distanceKm = distanceMeters / 1000.0

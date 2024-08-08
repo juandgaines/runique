@@ -4,7 +4,7 @@ import com.juandgaines.core.domain.location.LocationTimestamp
 
 object LocationDataCalculator {
 
-    fun getTotalDistaneInMeters(
+    fun getTotalDistanceInMeters(
         locations: List<List<LocationTimestamp>>
     ):Int{
         return locations
