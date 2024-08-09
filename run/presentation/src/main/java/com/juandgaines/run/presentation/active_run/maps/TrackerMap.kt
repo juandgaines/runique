@@ -94,7 +94,8 @@ fun TrackerMap(
                 Box (
                     modifier = Modifier
                         .size(35.dp)
-                        .background(color = MaterialTheme.colorScheme.primary, shape = CircleShape)
+                        .background(color = MaterialTheme.colorScheme.primary, shape = CircleShape),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
                 ){
                     Icon(
                         imageVector = RunIcon,
