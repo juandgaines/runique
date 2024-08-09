@@ -15,8 +15,6 @@ internal fun Project.configureBuildTypes(
             buildConfig = true
         }
         val apiKey = gradleLocalProperties(rootDir).getProperty("API_KEY")
-        val mapApiKeyDebug = gradleLocalProperties(rootDir).getProperty("MAPS_KEY_DEBUG")
-        val mapApiKeyRelease = gradleLocalProperties(rootDir).getProperty("MAPS_KEY_RELEASE")
 
         when (extensionType) {
             ExtensionType.APPLICATION -> {
@@ -24,10 +22,10 @@ internal fun Project.configureBuildTypes(
 
                     buildTypes {
                         debug {
-                            configureDebugBuildType(apiKey, mapApiKeyDebug)
+                            configureDebugBuildType(apiKey)
                         }
                         release {
-                            configureReleaseBuildType(commonExtension, apiKey, mapApiKeyRelease)
+                            configureReleaseBuildType(commonExtension, apiKey)
                         }
                     }
                 }
@@ -36,10 +34,10 @@ internal fun Project.configureBuildTypes(
                 extensions.configure<com.android.build.api.dsl.LibraryExtension> {
                     buildTypes {
                         debug {
-                            configureDebugBuildType(apiKey, mapApiKeyDebug)
+                            configureDebugBuildType(apiKey)
                         }
                         release {
-                            configureReleaseBuildType(commonExtension, apiKey, mapApiKeyRelease)
+                            configureReleaseBuildType(commonExtension, apiKey)
                         }
                     }
                 }
@@ -50,21 +48,17 @@ internal fun Project.configureBuildTypes(
 
 private fun BuildType.configureDebugBuildType(
     apiKey: String,
-    mapApiKeyDebug: String
 ) {
     buildConfigField("String", "API_KEY", "\"$apiKey\"")
     buildConfigField("String", "BASE_URL", "\"https://runique.pl-coding.com:8080\"")
-    manifestPlaceholders["MAPS_API_KEY"] = mapApiKeyDebug
 }
 
 private fun BuildType.configureReleaseBuildType(
     commonExtension: CommonExtension<*, *, *, *, *>,
     apiKey: String,
-    mapApiKeyRelease: String
 ) {
     buildConfigField("String", "API_KEY", "\"$apiKey\"")
     buildConfigField("String", "BASE_URL", "\"https://runique.pl-coding.com:8080\"")
-    manifestPlaceholders["MAPS_API_KEY"] = mapApiKeyRelease
 
     isMinifyEnabled = true
     proguardFiles(
