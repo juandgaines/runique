@@ -27,7 +27,10 @@ class ActiveRunViewModel(
     private val runningTracker: RunningTracker
 ):ViewModel() {
 
-    var state by mutableStateOf(ActiveRunState())
+    var state by mutableStateOf(ActiveRunState(
+        shouldTrack = ActiveRunService.isServiceActive && runningTracker.isTracking.value,
+        hasStartedRunning = ActiveRunService.isServiceActive,
+    ))
         private set
 
     private val eventChannel = Channel<ActiveRunEvent>()
@@ -139,6 +142,13 @@ class ActiveRunViewModel(
                 )
             }
             else -> {}
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        if(!ActiveRunService.isServiceActive){
+            runningTracker.stopObservingLocation()
         }
     }
 }

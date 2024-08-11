@@ -43,16 +43,19 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ActiveRunScreenRoot(
+    onServiceToggle: (isServiceRunning: Boolean) -> Unit,
     viewModel: ActiveRunViewModel = koinViewModel(),
 ) {
     ActiveRunScreen(
         state = viewModel.state,
+        onServiceToggle = onServiceToggle,
         onAction = viewModel::onAction
     )
 }
 @Composable
 fun ActiveRunScreen(
     state: ActiveRunState,
+    onServiceToggle:(isServiceRunning:Boolean)-> Unit = {},
     onAction : (ActiveRunAction) -> Unit = {},
 ) {
 
@@ -104,6 +107,18 @@ fun ActiveRunScreen(
         )
         if (!showLocationRationale || !showNotificationRationale) {
             permissionLauncher.requestRuniquePermissions(context)
+        }
+    }
+
+    LaunchedEffect(key1 = state.isRunFinished) {
+        if (state.isRunFinished){
+            onServiceToggle(false)
+        }
+    }
+
+    LaunchedEffect(key1 = state.shouldTrack) {
+        if (context.hasLocationPermission() && state.shouldTrack && !ActiveRunService.isServiceActive){
+            onServiceToggle(true)
         }
     }
     RuniqueScaffold(
