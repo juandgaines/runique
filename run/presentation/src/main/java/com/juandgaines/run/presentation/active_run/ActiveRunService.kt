@@ -32,7 +32,7 @@ class ActiveRunService:Service() {
         NotificationCompat.Builder(applicationContext,CHANNEL_ID)
             .setSmallIcon(com.plcoding.core.presentation.designsystem.R.drawable.logo)
             .setContentTitle(getString(R.string.active_run))
-
+            .setSilent(true)
     }
 
     private var serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -63,7 +63,9 @@ class ActiveRunService:Service() {
             }
             val pendingIntent = TaskStackBuilder.create(applicationContext).run {
                 addNextIntentWithParentStack(activityIntent)
-                getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
+                getPendingIntent(0,
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
             }
             val notification = baseNotification
                 .setContentText("00:00:00")
