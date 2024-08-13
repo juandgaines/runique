@@ -15,6 +15,7 @@ internal fun Project.configureBuildTypes(
             buildConfig = true
         }
         val apiKey = gradleLocalProperties(rootDir).getProperty("API_KEY")
+
         when (extensionType) {
             ExtensionType.APPLICATION -> {
                 extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
@@ -45,14 +46,16 @@ internal fun Project.configureBuildTypes(
     }
 }
 
-private fun BuildType.configureDebugBuildType(apiKey: String) {
+private fun BuildType.configureDebugBuildType(
+    apiKey: String,
+) {
     buildConfigField("String", "API_KEY", "\"$apiKey\"")
     buildConfigField("String", "BASE_URL", "\"https://runique.pl-coding.com:8080\"")
 }
 
 private fun BuildType.configureReleaseBuildType(
     commonExtension: CommonExtension<*, *, *, *, *>,
-    apiKey: String
+    apiKey: String,
 ) {
     buildConfigField("String", "API_KEY", "\"$apiKey\"")
     buildConfigField("String", "BASE_URL", "\"https://runique.pl-coding.com:8080\"")
