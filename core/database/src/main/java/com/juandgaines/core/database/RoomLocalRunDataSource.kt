@@ -16,7 +16,7 @@ class RoomLocalRunDataSource(
     private val runDao: RunDao
 ): LocalRunDataSource {
     override fun getRuns(): Flow<List<Run>> {
-        return runDao.getAllRuns().map {runEntities ->
+        return runDao.getRuns().map {runEntities ->
             runEntities.map { it.toRun()}
         }
     }
@@ -24,7 +24,7 @@ class RoomLocalRunDataSource(
     override suspend fun upsertRun(run: Run): Result<RunId, LocalError> {
         return try {
             val entity = run.toRunEntity()
-            runDao.upsert(run.toRunEntity())
+            runDao.upsertRun(run.toRunEntity())
             Result.Success(entity.id)
         } catch (e: SQLiteFullException) {
             Result.Error(LocalError.DISK_FULL)
@@ -34,7 +34,7 @@ class RoomLocalRunDataSource(
     override suspend fun upsertRuns(runs: List<Run>): Result<List<RunId>, LocalError> {
         return try {
             val entities = runs.map { it.toRunEntity() }
-            runDao.upsert(entities)
+            runDao.upsertRuns(entities)
             Result.Success(entities.map { it.id })
         } catch (e: SQLiteFullException) {
             Result.Error(LocalError.DISK_FULL)
