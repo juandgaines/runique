@@ -8,6 +8,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.juandgaines.core.domain.location.Location
 import com.juandgaines.core.domain.run.Run
+import com.juandgaines.core.domain.run.RunRepository
+import com.juandgaines.core.domain.util.Result.Error
+import com.juandgaines.core.domain.util.Result.Success
+import com.juandgaines.core.presentation.ui.asUiText
 import com.juandgaines.run.domain.LocationDataCalculator
 import com.juandgaines.run.domain.RunningTracker
 import com.juandgaines.run.presentation.active_run.ActiveRunAction.OnBackClick
@@ -30,7 +34,8 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 class ActiveRunViewModel(
-    private val runningTracker: RunningTracker
+    private val runningTracker: RunningTracker,
+    private val runRepository: RunRepository
 ):ViewModel() {
 
     var state by mutableStateOf(ActiveRunState(
@@ -178,11 +183,20 @@ class ActiveRunViewModel(
                 totalElevationMeters = LocationDataCalculator.getTotalElevationMeters(locations),
                 mapPictureUrl = null
             )
-        }
 
-        //TODO: Save run in repository
-        runningTracker.finishRun()
-        state = state.copy(isSavingRun = false)
+            runningTracker.finishRun()
+
+            when (val result = runRepository.upsertRun(run = run,mapPictureBytes)){
+                is Error -> {
+                    eventChannel.send(ActiveRunEvent.Error(result.error.asUiText()))
+                }
+                is Success -> {
+                    eventChannel.send(ActiveRunEvent.RunSaved)
+                }
+            }
+
+            state = state.copy(isSavingRun = false)
+        }
     }
 
     override fun onCleared() {

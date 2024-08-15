@@ -6,6 +6,7 @@ import android.Manifest
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -33,7 +34,10 @@ import com.juandgaines.core.presentation.designsystem.components.RuniqueFloating
 import com.juandgaines.core.presentation.designsystem.components.RuniqueOutlinedActionButton
 import com.juandgaines.core.presentation.designsystem.components.RuniqueScaffold
 import com.juandgaines.core.presentation.designsystem.components.RuniqueToolbar
+import com.juandgaines.core.presentation.ui.ObserveAsEvents
 import com.juandgaines.run.presentation.R
+import com.juandgaines.run.presentation.active_run.ActiveRunEvent.Error
+import com.juandgaines.run.presentation.active_run.ActiveRunEvent.RunSaved
 import com.juandgaines.run.presentation.active_run.components.RunDataCard
 import com.juandgaines.run.presentation.active_run.maps.TrackerMap
 import com.juandgaines.run.presentation.util.hasLocationPermission
@@ -45,13 +49,40 @@ import java.io.ByteArrayOutputStream
 
 @Composable
 fun ActiveRunScreenRoot(
+    onFinished: () -> Unit,
+    onBack: () -> Unit,
     onServiceToggle: (isServiceRunning: Boolean) -> Unit,
     viewModel: ActiveRunViewModel = koinViewModel(),
 ) {
+    val context = LocalContext.current
+    ObserveAsEvents(flow = viewModel.events) { events->
+        when(events){
+            is Error -> {
+                Toast.makeText(
+                    context,
+                    events.error.asString(context),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            RunSaved -> {
+                onFinished()
+            }
+        }
+    }
     ActiveRunScreen(
         state = viewModel.state,
         onServiceToggle = onServiceToggle,
-        onAction = viewModel::onAction
+        onAction = {  action->
+            when(action){
+                is ActiveRunAction.OnBackClick->{
+                    if(!viewModel.state.hasStartedRunning){
+                        onBack()
+                    }
+                }
+                else->Unit
+            }
+            viewModel.onAction(action)
+        }
     )
 }
 @Composable
