@@ -6,7 +6,7 @@ import java.time.Instant
 import java.time.ZoneId
 import kotlin.time.Duration.Companion.milliseconds
 
-fun RunDto.toRun():Run{
+fun RunDto.toRun(): Run {
     return Run(
         id = id,
         duration = durationMillis.milliseconds,
@@ -20,10 +20,9 @@ fun RunDto.toRun():Run{
     )
 }
 
-fun Run.toCreeateRunRequest():CreateRunRequest{
+fun Run.toCreateRunRequest(): CreateRunRequest {
     return CreateRunRequest(
         id = id!!,
-        epochMillis = dateTimeUtc.toEpochSecond() * 1000L,
         durationMillis = duration.inWholeMilliseconds,
         distanceMeters = distanceMeters,
         lat = location.lat,
@@ -31,6 +30,6 @@ fun Run.toCreeateRunRequest():CreateRunRequest{
         avgSpeedKmh = avgSpeedKmh,
         maxSpeedKmh = maxSpeedKmh,
         totalElevationMeters = totalElevationMeters,
-
+        epochMillis = dateTimeUtc.toEpochSecond() * 1000L
     )
 }

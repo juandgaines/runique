@@ -6,6 +6,7 @@ import com.juandgaines.core.data.networking.get
 import com.juandgaines.core.data.networking.safeCall
 import com.juandgaines.core.domain.run.RemoteRunDataSource
 import com.juandgaines.core.domain.run.Run
+import com.juandgaines.core.domain.util.DataError
 import com.juandgaines.core.domain.util.DataError.Network
 import com.juandgaines.core.domain.util.EmptyResult
 import com.juandgaines.core.domain.util.Result
@@ -21,37 +22,33 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class KtorRemoteRunDataSource(
-    private val httpClient:HttpClient
+    private val httpClient: HttpClient
 ): RemoteRunDataSource {
 
-    override suspend fun getRuns(): Result<List<Run>, Network> {
+    override suspend fun getRuns(): Result<List<Run>, DataError.Network> {
         return httpClient.get<List<RunDto>>(
             route = "/runs",
-        ).map { runDtos->
+        ).map { runDtos ->
             runDtos.map { it.toRun() }
         }
     }
 
-    override suspend fun postRun(
-        run: Run,
-        mapPicture: ByteArray,
-    ): Result<Run, Network> {
-        //Multipart form data
-        val createRunRequest = Json.encodeToString(run.toCreeateRunRequest())
-        val result = safeCall<RunDto>{
+    override suspend fun postRun(run: Run, mapPicture: ByteArray): Result<Run, DataError.Network> {
+        val createRunRequestJson = Json.encodeToString(run.toCreateRunRequest())
+        val result = safeCall<RunDto> {
             httpClient.submitFormWithBinaryData(
                 url = constructRoute("/run"),
                 formData = formData {
-                    append("MAP_PICTURE",mapPicture, Headers.build {
-                        append(HttpHeaders.ContentType,"image/jpeg")
-                        append(HttpHeaders.ContentDisposition,"filename=mappicture.jpg")
+                    append("MAP_PICTURE", mapPicture, Headers.build {
+                        append(HttpHeaders.ContentType, "image/jpeg")
+                        append(HttpHeaders.ContentDisposition, "filename=mappicture.jpg")
                     })
-                    append("RUN_DATA", createRunRequest, Headers.build {
-                        append(HttpHeaders.ContentType,"text/plain")
-                        append(HttpHeaders.ContentDisposition,"form-data; name=\"RUN_DATA\"")
+                    append("RUN_DATA", createRunRequestJson, Headers.build {
+                        append(HttpHeaders.ContentType, "text/plain")
+                        append(HttpHeaders.ContentDisposition, "form-data; name=\"RUN_DATA\"")
                     })
                 }
-            ){
+            ) {
                 method = HttpMethod.Post
             }
         }
@@ -60,10 +57,12 @@ class KtorRemoteRunDataSource(
         }
     }
 
-    override suspend fun deleteRun(id: String): EmptyResult<Network> {
+    override suspend fun deleteRun(id: String): EmptyResult<DataError.Network> {
         return httpClient.delete(
             route = "/run",
-            queryParameter = mapOf("id" to id)
+            queryParameter = mapOf(
+                "id" to id
+            )
         )
     }
 }

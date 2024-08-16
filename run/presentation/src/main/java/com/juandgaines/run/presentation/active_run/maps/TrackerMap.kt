@@ -19,8 +19,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -48,17 +50,16 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun TrackerMap(
-    modifier: Modifier = Modifier,
     isRunFinished: Boolean,
     currentLocation: Location?,
     locations: List<List<LocationTimestamp>>,
-    onSnapshot:(Bitmap)->Unit,
-){
+    onSnapshot: (Bitmap) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val mapStyle = remember {
         MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style)
     }
-
     val cameraPositionState = rememberCameraPositionState()
     val markerState = rememberMarkerState()
 
@@ -76,14 +77,14 @@ fun TrackerMap(
         LatLng(markerPositionLat.toDouble(), markerPositionLong.toDouble())
     }
 
-    LaunchedEffect(key1 = markerPosition, isRunFinished) {
-        if(!isRunFinished){
+    LaunchedEffect(markerPosition, isRunFinished) {
+        if(!isRunFinished) {
             markerState.position = markerPosition
         }
     }
 
-    LaunchedEffect(key1 = currentLocation) {
-        if(currentLocation != null && !isRunFinished){
+    LaunchedEffect(currentLocation, isRunFinished) {
+        if(currentLocation != null && !isRunFinished) {
             val latLng = LatLng(currentLocation.lat, currentLocation.long)
             cameraPositionState.animate(
                 CameraUpdateFactory.newLatLngZoom(latLng, 17f)
@@ -91,47 +92,46 @@ fun TrackerMap(
         }
     }
 
-    var triggeredCapture by remember {
+    var triggerCapture by remember {
         mutableStateOf(false)
     }
-
-    var createSnapshot: Job? = remember {
+    var createSnapshotJob: Job? = remember {
         null
     }
 
     GoogleMap(
         cameraPositionState = cameraPositionState,
         properties = MapProperties(
-            mapStyleOptions = mapStyle,
+            mapStyleOptions = mapStyle
         ),
         uiSettings = MapUiSettings(
-            zoomControlsEnabled = false,
+            zoomControlsEnabled = false
         ),
-        modifier = if (isRunFinished)
-            Modifier
+        modifier = if(isRunFinished) {
+            modifier
                 .width(300.dp)
                 .aspectRatio(16 / 9f)
                 .alpha(0f)
                 .onSizeChanged {
-                    if (it.width >= 300)
-                        triggeredCapture = true
+                    if (it.width >= 300) {
+                        triggerCapture = true
+                    }
                 }
-        else modifier
-    ){
+        } else modifier
+    ) {
         RuniquePolylines(locations = locations)
 
-        MapEffect(locations,isRunFinished,triggeredCapture, createSnapshot) { map ->
-            if(isRunFinished && triggeredCapture && createSnapshot == null){
+        MapEffect(locations, isRunFinished, triggerCapture, createSnapshotJob) { map ->
+            if(isRunFinished && triggerCapture && createSnapshotJob == null) {
+                triggerCapture = false
 
-                val boundsBuilder= LatLngBounds.builder()
-                locations.flatten().forEach { location->
+                val boundsBuilder = LatLngBounds.builder()
+                locations.flatten().forEach { location ->
                     boundsBuilder
-                        .include(
-                            LatLng(
-                                location.location.location.lat,
-                                location.location.location.long
-                            )
-                        )
+                        .include(LatLng(
+                            location.location.location.lat,
+                            location.location.location.long,
+                        ))
                 }
                 map.moveCamera(
                     CameraUpdateFactory.newLatLngBounds(
@@ -139,28 +139,31 @@ fun TrackerMap(
                         100
                     )
                 )
+
                 map.setOnCameraIdleListener {
-                    createSnapshot?.cancel()
-                    createSnapshot = GlobalScope.launch {
-                        //Make sure the map is sharp and focus before the snapshot
-                        delay(500)
-                        map?.awaitSnapshot()?.let(onSnapshot)
+                    createSnapshotJob?.cancel()
+                    createSnapshotJob = GlobalScope.launch {
+                        // Make sure the map is sharp and focused before taking
+                        // the screenshot
+                        delay(500L)
+                        map.awaitSnapshot()?.let(onSnapshot)
                     }
                 }
             }
         }
 
-        if(!isRunFinished && currentLocation != null){
+        if(!isRunFinished && currentLocation != null) {
             MarkerComposable(
                 currentLocation,
-                state = markerState,
+                state = markerState
             ) {
-                Box (
+                Box(
                     modifier = Modifier
                         .size(35.dp)
-                        .background(color = MaterialTheme.colorScheme.primary, shape = CircleShape),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
-                ){
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         imageVector = RunIcon,
                         contentDescription = null,
