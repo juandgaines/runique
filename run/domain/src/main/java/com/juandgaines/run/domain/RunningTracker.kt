@@ -26,9 +26,9 @@ class RunningTracker(
     private val locationObserver: LocationObserver,
     private val applicationScope: CoroutineScope
 ) {
-
     private val _runData = MutableStateFlow(RunData())
-    val runData = _runData
+    val runData = _runData.asStateFlow()
+
     private val _isTracking = MutableStateFlow(false)
     val isTracking = _isTracking.asStateFlow()
 
@@ -37,101 +37,107 @@ class RunningTracker(
     private val _elapsedTime = MutableStateFlow(Duration.ZERO)
     val elapsedTime = _elapsedTime.asStateFlow()
 
-    val currentLocation = isObservingLocation.flatMapLatest { isObservingLocation->
-        if (isObservingLocation){
-            locationObserver.observeLocation(1000L)
-        } else {
-            flowOf()
+    val currentLocation = isObservingLocation
+        .flatMapLatest { isObservingLocation ->
+            if(isObservingLocation) {
+                locationObserver.observeLocation(1000L)
+            } else flowOf()
         }
-    }.stateIn(
-        applicationScope,
-        SharingStarted.Lazily,
-        null
-    )
+        .stateIn(
+            applicationScope,
+            SharingStarted.Lazily,
+            null
+        )
 
     init {
         _isTracking
             .onEach { isTracking ->
-                if (!isTracking){
+                if(!isTracking) {
                     val newList = buildList {
-                        addAll(_runData.value.locations)
+                        addAll(runData.value.locations)
                         add(emptyList<LocationTimestamp>())
                     }.toList()
-                    _runData.update {
-                        RunData(
-                            distanceMeters = it.distanceMeters,
-                            pace = it.pace,
-                            locations = newList
-                        )
-                    }
+                    _runData.update { it.copy(
+                        locations = newList
+                    ) }
                 }
             }
-            .flatMapLatest { isTracking->
-                if (isTracking){
+            .flatMapLatest { isTracking ->
+                if(isTracking) {
                     Timer.timeAndEmits()
-                } else {
-                    flowOf()
-                }
+                } else flowOf()
             }
             .onEach {
                 _elapsedTime.value += it
-            }.launchIn(applicationScope)
+            }
+            .launchIn(applicationScope)
 
         currentLocation
             .filterNotNull()
-            .combineTransform(_isTracking){ location, isTracking->
-                if (isTracking){
+            .combineTransform(_isTracking) { location, isTracking ->
+                if(isTracking) {
                     emit(location)
                 }
             }
-            .zip(_elapsedTime){ location, elapsedTime->
+            .zip(_elapsedTime) { location, elapsedTime ->
                 LocationTimestamp(
                     location = location,
                     durationTimestamp = elapsedTime
                 )
             }
             .onEach { location ->
-                val currentLocations = _runData.value.locations
-                val lastLocationList = if (currentLocations.isNotEmpty()){
+                val currentLocations = runData.value.locations
+                val lastLocationsList = if(currentLocations.isNotEmpty()) {
                     currentLocations.last() + location
                 } else listOf(location)
-                val newLocationList = currentLocations.replaceLast(lastLocationList)
-                val distanceMeters = LocationDataCalculator.getTotalDistanceInMeters(
-                    newLocationList
+                val newLocationsList = currentLocations.replaceLast(lastLocationsList)
+
+                val distanceMeters = LocationDataCalculator.getTotalDistanceMeters(
+                    locations = newLocationsList
                 )
                 val distanceKm = distanceMeters / 1000.0
                 val currentDuration = location.durationTimestamp
-                val avgSecondsPerKm = if (distanceKm == 0.0){
+
+                val avgSecondsPerKm = if(distanceKm == 0.0) {
                     0
                 } else {
                     (currentDuration.inWholeSeconds / distanceKm).roundToInt()
                 }
+
                 _runData.update {
                     RunData(
                         distanceMeters = distanceMeters,
                         pace = avgSecondsPerKm.seconds,
-                        locations = newLocationList
+                        locations = newLocationsList
                     )
                 }
-            }.launchIn(applicationScope)
+            }
+            .launchIn(applicationScope)
     }
 
-    fun setIsTracking(isTracking: Boolean){
+    fun setIsTracking(isTracking: Boolean) {
         this._isTracking.value = isTracking
     }
 
-    fun startObservingLocation(){
+    fun startObservingLocation() {
         isObservingLocation.value = true
     }
-    fun stopObservingLocation(){
+
+    fun stopObservingLocation() {
         isObservingLocation.value = false
+    }
+
+    fun finishRun() {
+        stopObservingLocation()
+        setIsTracking(false)
+        _elapsedTime.value = Duration.ZERO
+        _runData.value = RunData()
     }
 }
 
 private fun <T> List<List<T>>.replaceLast(replacement: List<T>): List<List<T>> {
-    return if (this.isEmpty()){
-        listOf(replacement)
-    } else {
-        dropLast(1) + listOf(replacement)
+    if(this.isEmpty()) {
+        return listOf(replacement)
     }
+    return this.dropLast(1) + listOf(replacement)
 }

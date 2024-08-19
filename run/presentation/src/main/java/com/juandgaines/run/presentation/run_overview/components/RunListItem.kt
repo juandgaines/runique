@@ -300,7 +300,7 @@ fun RunListItemPreview() {
                 id = "123",
                 duration = 10.minutes + 30.seconds,
                 dateTimeUtc = ZonedDateTime.now(),
-                distanceInMeters = 2543,
+                distanceMeters = 2543,
                 location = Location(0.0, 0.0),
                 maxSpeedKmh = 15.6234,
                 totalElevationMeters = 123,

@@ -13,22 +13,21 @@ import java.time.format.DateTimeFormatter
 fun Run.toRunUi(): RunUi {
     val dateTimeInLocalTime = dateTimeUtc
         .withZoneSameInstant(ZoneId.systemDefault())
-
     val formattedDateTime = DateTimeFormatter
-        .ofPattern("MMM dd, yyyy - HH:mma")
+        .ofPattern("MMM dd, yyyy - hh:mma")
         .format(dateTimeInLocalTime)
 
-    val distanceKm = distanceInMeters / 1000.0
+    val distanceKm = distanceMeters / 1000.0
 
     return RunUi(
-        id = id ?: "",
+        id = id!!,
         duration = duration.formatted(),
         dateTime = formattedDateTime,
         distance = distanceKm.toFormattedKm(),
         avgSpeed = avgSpeedKmh.toFormattedKmh(),
         maxSpeed = maxSpeedKmh.toFormattedKmh(),
-        pace =duration.toFormattedPace(distanceKm),
-        totalElevation =totalElevationMeters.toFormattedMeters(),
+        pace = duration.toFormattedPace(distanceKm),
+        totalElevation = totalElevationMeters.toFormattedMeters(),
         mapPictureUrl = mapPictureUrl
     )
 }
