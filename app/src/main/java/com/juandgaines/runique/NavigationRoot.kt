@@ -97,6 +97,13 @@ private fun NavGraphBuilder.runGraph(
             RunOverviewScreenRoot(
                 onStartRunClick = {
                     navController.navigate("active_run")
+                },
+                onLogOutClick = {
+                    navController.navigate("auth"){
+                        popUpTo("run"){
+                            inclusive = true
+                        }
+                    }
                 }
             )
         }

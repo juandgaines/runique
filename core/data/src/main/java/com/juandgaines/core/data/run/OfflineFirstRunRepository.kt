@@ -1,5 +1,6 @@
 package com.juandgaines.core.data.run
 
+import com.juandgaines.core.data.networking.get
 import com.juandgaines.core.database.dao.RunPendingSyncDao
 import com.juandgaines.core.database.mappers.toRun
 import com.juandgaines.core.domain.SessionStorage
@@ -10,15 +11,23 @@ import com.juandgaines.core.domain.run.RunId
 import com.juandgaines.core.domain.run.RunRepository
 import com.juandgaines.core.domain.run.SyncRunScheduler
 import com.juandgaines.core.domain.util.DataError
+import com.juandgaines.core.domain.util.DataError.Network
 import com.juandgaines.core.domain.util.EmptyResult
 import com.juandgaines.core.domain.util.Result
 import com.juandgaines.core.domain.util.Result.Error
 import com.juandgaines.core.domain.util.Result.Success
 import com.juandgaines.core.domain.util.asEmptyDataResult
+import io.ktor.client.HttpClient
+import com.juandgaines.core.data.networking.get
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BearerAuthProvider
+import io.ktor.client.plugins.plugin
+import io.ktor.client.request.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -28,7 +37,8 @@ class OfflineFirstRunRepository(
     private val applicationScope: CoroutineScope,
     private val runPendingSyncDao: RunPendingSyncDao,
     private val sessionStorage: SessionStorage,
-    private val syncRunScheduler: SyncRunScheduler
+    private val syncRunScheduler: SyncRunScheduler,
+    private val client:HttpClient
 ) :RunRepository{
     override fun getRuns(): Flow<List<Run>> {
         return localRunRepository.getRuns()
@@ -98,6 +108,10 @@ class OfflineFirstRunRepository(
         }
     }
 
+    override suspend fun deleteAllRuns() {
+        localRunRepository.deleteAllRuns()
+    }
+
     override suspend fun syncPendingRuns() {
         withContext(Dispatchers.IO) {
             val userId = sessionStorage.get()?.userId ?: return@withContext
@@ -140,5 +154,16 @@ class OfflineFirstRunRepository(
             createJobs.forEach { it.join() }
             deletedJobs.forEach { it.join() }
         }
+    }
+
+    override suspend fun logout(): EmptyResult<Network> {
+        val result = client.get<Unit>(
+            route ="/logout"
+        ).asEmptyDataResult()
+
+        client.plugin(Auth).providers.filterIsInstance<BearerAuthProvider>()
+            .firstOrNull()
+            ?.clearToken()
+        return result
     }
 }
