@@ -13,14 +13,14 @@ import com.juandgaines.convention.ExtensionType.DYNAMIC_FEATURE
 import com.juandgaines.convention.ExtensionType.LIBRARY
 
 internal fun Project.configureBuildTypes(
-    commonExtension: CommonExtension<*, *, *, *, *>,
+    commonExtension: CommonExtension<*, *, *, *, *, *>,
     extensionType: ExtensionType
 ){
     commonExtension.run {
         buildFeatures {
             buildConfig = true
         }
-        val apiKey = gradleLocalProperties(rootDir).getProperty("API_KEY")
+        val apiKey = gradleLocalProperties(rootDir, rootProject.providers).getProperty("API_KEY")
 
         when (extensionType) {
             APPLICATION -> {
@@ -74,7 +74,7 @@ private fun BuildType.configureDebugBuildType(
 }
 
 private fun BuildType.configureReleaseBuildType(
-    commonExtension: CommonExtension<*, *, *, *, *>,
+    commonExtension: CommonExtension<*, *, *, *, *, *>,
     apiKey: String,
 ) {
     buildConfigField("String", "API_KEY", "\"$apiKey\"")

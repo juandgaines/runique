@@ -4,12 +4,13 @@ import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.JavaVersion.VERSION_17
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.internal.impldep.com.jcraft.jsch.ConfigRepository.defaultConfig
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.withType
 
 internal fun Project.configureKotlinAndroid(
-    commonExtension: CommonExtension<*, *, *, *,*>
+    commonExtension: CommonExtension<*, *, *, *,*,*>
 ){
     commonExtension.apply {
         compileSdk = libs.findVersion("projectCompileSdkVersion").get().toString().toInt()

@@ -10,6 +10,7 @@ class AndroidLibraryComposeConventionPlugin:Plugin<Project>{
         target.run {
             pluginManager.run {
                 apply("runique.android.library")
+                apply("org.jetbrains.kotlin.plugin.compose")
             }
 
             val extension = extensions.getByType<LibraryExtension>()

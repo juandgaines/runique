@@ -1,4 +1,3 @@
-@file:Suppress("OPT_IN_USAGE_FUTURE_ERROR")
 
 package com.juandgaines.auth.presentation.register
 
@@ -231,17 +230,6 @@ fun PasswordRequirement(
             text = text,
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Preview
-@Composable
-fun RegisterScreenPreview() {
-    RuniqueTheme {
-        RegisterScreen(
-            state = RegisterState(),
-            onAction = {},
         )
     }
 }
