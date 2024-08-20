@@ -1,4 +1,3 @@
-@file:OptIn(ExperimentalFoundationApi::class)
 
 package com.juandgaines.auth.presentation.register
 
@@ -6,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.text2.input.TextFieldState
 import com.juandgaines.auth.domain.PasswordValidationState
 
+@OptIn(ExperimentalFoundationApi::class)
 data class RegisterState(
     val email: TextFieldState = TextFieldState(),
     val isEmailValid: Boolean = false,
