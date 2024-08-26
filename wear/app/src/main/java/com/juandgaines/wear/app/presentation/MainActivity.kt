@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.Text
+import com.juandgaines.core.presentation.designsystem_wear.RuniqueTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,12 +24,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            Box (
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = androidx.compose.ui.Alignment.Center
-            ){
-                Text(text = "Hello, Wear Compose!")
+            RuniqueTheme {
+                Box (
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ){
+                  Button(onClick = { /*TODO*/ }) {
+                      Text(text = "Hello World!")
+                  }
+                }
             }
+
         }
     }
 }
