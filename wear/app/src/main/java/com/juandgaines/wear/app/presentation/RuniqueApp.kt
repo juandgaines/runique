@@ -1,10 +1,10 @@
 package com.juandgaines.wear.app.presentation
 
 import android.app.Application
-import com.juandgaines.wear.run.presentation.di.runPresentationModule
+import com.juandgaines.wear.run.data.di.wearDataModule
+import com.juandgaines.wear.run.presentation.di.wearRunPresentationModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
-import org.koin.androidx.workmanager.koin.workManagerFactory
 import org.koin.core.context.startKoin
 
 class RuniqueApp: Application() {
@@ -14,7 +14,8 @@ class RuniqueApp: Application() {
             androidLogger()
             androidContext(this@RuniqueApp)
             modules(
-                runPresentationModule
+                wearRunPresentationModule,
+                wearDataModule
             )
         }
     }
