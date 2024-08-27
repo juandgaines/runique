@@ -1,5 +1,8 @@
 package com.juandgaines.wear.run.presentation
 
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,12 +16,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.wear.compose.material3.FilledTonalIconButton
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButtonDefaults
@@ -55,6 +61,42 @@ fun TrackerScreen(
     onAction: (TrackerAction) -> Unit,
 ) {
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) {  perms->
+        val hasBodySensorPermission = perms[android.Manifest.permission.BODY_SENSORS] == true
+        onAction(TrackerAction.OnBodySensorPermissionResult(hasBodySensorPermission))
+    }
+    val context = LocalContext.current
+
+    LaunchedEffect(true) {
+
+        val hasBodySensorPermission = ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.BODY_SENSORS
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+        onAction(TrackerAction.OnBodySensorPermissionResult(hasBodySensorPermission))
+
+        val hasNotificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+
+        val permissions = mutableListOf<String>()
+
+        if (!hasBodySensorPermission ) {
+            permissions.add(android.Manifest.permission.BODY_SENSORS)
+        }
+        if (!hasNotificationPermission && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+        permissionLauncher.launch(permissions.toTypedArray())
+    }
     if(state.isConnectedPhoneNearby){
         Column (
             modifier = Modifier

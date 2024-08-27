@@ -25,4 +25,6 @@ dependencies {
 
     implementation(projects.core.presentation.designsystemWear)
     implementation(projects.core.presentation.ui)
+    implementation(projects.wear.run.domain)
+    implementation(projects.core.domain)
 }
