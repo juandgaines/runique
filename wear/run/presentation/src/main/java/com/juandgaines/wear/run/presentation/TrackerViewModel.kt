@@ -20,26 +20,11 @@ class TrackerViewModel(
     private val exerciseTracker: ExerciseTracker
 ):ViewModel() {
 
-    var state by mutableStateOf(TrackerState(
-        isConnectedPhoneNearby = true,
-    ))
+    var state by mutableStateOf(TrackerState())
         private set
 
     private val hasBodySensorPermission = MutableStateFlow(false)
 
-    init {
-        viewModelScope.launch {
-           hasBodySensorPermission.flatMapLatest { isGranted->
-                if(isGranted){
-                    exerciseTracker.heartRate
-                }
-               else
-                   flowOf()
-           }.onEach {
-                state = state.copy(heartRate = it)
-           }.launchIn(this)
-        }
-    }
     fun onAction(action: TrackerAction){
         when(action){
             is OnBodySensorPermissionResult -> {
@@ -48,8 +33,6 @@ class TrackerViewModel(
                     viewModelScope.launch {
                        val isHeartRateTrackingSupported = exerciseTracker.isHeartRateTrackingSupported()
                           state = state.copy(canTrackHeartRate = isHeartRateTrackingSupported)
-                        exerciseTracker.prepareExercise()
-                        exerciseTracker.startExercise()
                     }
                 }
             }
