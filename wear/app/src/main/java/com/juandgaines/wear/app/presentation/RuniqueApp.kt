@@ -1,6 +1,7 @@
 package com.juandgaines.wear.app.presentation
 
 import android.app.Application
+import com.juandgaines.core.connectivity.di.coreConnectivityDataModule
 import com.juandgaines.wear.run.data.di.wearDataModule
 import com.juandgaines.wear.run.presentation.di.wearRunPresentationModule
 import org.koin.android.ext.koin.androidContext
@@ -15,7 +16,8 @@ class RuniqueApp: Application() {
             androidContext(this@RuniqueApp)
             modules(
                 wearRunPresentationModule,
-                wearDataModule
+                wearDataModule,
+                coreConnectivityDataModule
             )
         }
     }

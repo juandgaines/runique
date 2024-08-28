@@ -1,4 +1,6 @@
 package com.juandgaines.core.connectivity.domain
 
-class MyClass {
+enum class DeviceType {
+    PHONE,
+    WATCH,
 }
