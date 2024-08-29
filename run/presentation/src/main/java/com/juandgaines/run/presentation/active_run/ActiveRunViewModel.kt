@@ -14,6 +14,7 @@ import com.juandgaines.core.domain.util.Result.Success
 import com.juandgaines.core.presentation.ui.asUiText
 import com.juandgaines.run.domain.LocationDataCalculator
 import com.juandgaines.run.domain.RunningTracker
+import com.juandgaines.run.domain.WatchConnector
 import com.juandgaines.run.presentation.active_run.ActiveRunAction.OnBackClick
 import com.juandgaines.run.presentation.active_run.ActiveRunAction.OnFinishRunClick
 import com.juandgaines.run.presentation.active_run.ActiveRunAction.OnResumeRunClick
@@ -25,17 +26,20 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
 class ActiveRunViewModel(
     private val runningTracker: RunningTracker,
-    private val runRepository: RunRepository
+    private val runRepository: RunRepository,
+    private val watchConnector: WatchConnector
 ):ViewModel() {
 
     var state by mutableStateOf(ActiveRunState(
@@ -68,6 +72,15 @@ class ActiveRunViewModel(
     )
 
     init{
+
+        watchConnector.connectedDevice
+            .filterNotNull()
+            .onEach { connectedDevice->
+                Timber.d("Connected device: ${connectedDevice.displayName}")
+            }.launchIn(
+                viewModelScope
+            )
+
         hasLocationPermission
             .onEach { hasPermission->
                 if(hasPermission){
