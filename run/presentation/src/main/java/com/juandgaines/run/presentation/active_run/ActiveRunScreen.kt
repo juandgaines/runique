@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 
 package com.juandgaines.run.presentation.active_run
 
@@ -81,7 +81,7 @@ fun ActiveRunScreenRoot(
                 }
                 else->Unit
             }
-            viewModel.onAction(action)
+            viewModel.onAction(action, true)
         }
     )
 }
