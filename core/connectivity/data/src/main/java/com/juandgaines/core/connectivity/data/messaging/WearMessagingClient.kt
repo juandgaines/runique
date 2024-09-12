@@ -1,6 +1,7 @@
 package com.juandgaines.core.connectivity.data.messaging
 
 import android.content.Context
+import android.util.Log
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
@@ -45,6 +46,7 @@ class WearMessagingClient(
             messageQueue.clear()
 
             awaitClose {
+                Log.d("WatchRunique", "Closing connection to node")
                 client.removeListener(listener)
             }
         }
@@ -57,6 +59,7 @@ class WearMessagingClient(
                 client.sendMessage(id, BASE_PATH_MESSAGING_ACTION, json.encodeToByteArray()).await()
                 Result.Success(Unit)
             } catch (e: ApiException) {
+                Log.e("WatchRunique", "Failed to send message", e)
                 Result.Error(
                     if(e.status.isInterrupted) {
                         MessagingError.CONNECTION_INTERRUPTED
@@ -64,6 +67,7 @@ class WearMessagingClient(
                 )
             }
         } ?: run {
+            Log.d("WatchRunique", "Queueing action: $action")
             messageQueue.add(action)
             Result.Error(MessagingError.DISCONNECTED)
         }

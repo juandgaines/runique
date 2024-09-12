@@ -8,7 +8,7 @@
 
   <application>
     <meta-data android:name="com.google.android.geo.API_KEY" android:value="${MAPS_API_KEY}" />
-    <service android:name=".active_run.ActiveRunService"
+    <service android:name=".active_run.service.ActiveRunService"
         android:foregroundServiceType="location"/>
   </application>
 </manifest>

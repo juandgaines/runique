@@ -25,51 +25,50 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class PhoneToWatchConnector(
     nodeDiscovery: NodeDiscovery,
     applicationScope: CoroutineScope,
     private val messagingClient: MessagingClient
-):WatchConnector {
+): WatchConnector {
 
     private val _connectedNode = MutableStateFlow<DeviceNode?>(null)
     override val connectedDevice = _connectedNode.asStateFlow()
 
     private val isTrackable = MutableStateFlow(false)
 
-    override val messagingActions :Flow<MessagingAction> = nodeDiscovery
+    override val messagingActions: Flow<MessagingAction> = nodeDiscovery
         .observeConnectedDevices(DeviceType.PHONE)
-        .flatMapLatest {connectedDevices->
+        .flatMapLatest { connectedDevices ->
             val node = connectedDevices.firstOrNull()
-            if (node != null && node.isNearby){
+            if(node != null && node.isNearby) {
                 _connectedNode.value = node
                 messagingClient.connectToNode(node.id)
             } else flowOf()
-        }.onEach {  messagingAction ->
-            if(messagingAction == MessagingAction.ConnectionRequest){
-                if (isTrackable.value){
+        }
+        .onEach { action ->
+            if(action == MessagingAction.ConnectionRequest) {
+                if(isTrackable.value) {
                     sendActionToWatch(MessagingAction.Trackable)
                 } else {
                     sendActionToWatch(MessagingAction.Untrackable)
                 }
             }
-
         }
         .shareIn(
             applicationScope,
-            SharingStarted.Eagerly,
-
+            SharingStarted.Eagerly
         )
 
     init {
         _connectedNode
             .filterNotNull()
             .flatMapLatest { isTrackable }
-            .onEach { isTrackable->
+            .onEach { isTrackable ->
                 sendActionToWatch(MessagingAction.ConnectionRequest)
-                val action = if (isTrackable)
+                val action = if(isTrackable) {
                     MessagingAction.Trackable
-                else
-                    MessagingAction.Untrackable
+                } else MessagingAction.Untrackable
                 sendActionToWatch(action)
             }
             .launchIn(applicationScope)

@@ -58,24 +58,23 @@ class RunningTracker(
             null
         )
 
-
-    private val heartRate = isTracking
-        .flatMapLatest { isTracking->
-            if (isTracking) {
+    private val heartRates = isTracking
+        .flatMapLatest { isTracking ->
+            if(isTracking) {
                 watchConnector.messagingActions
-            } else  flowOf()
+            } else flowOf()
         }
         .filterIsInstance<MessagingAction.HeartRateUpdate>()
         .map { it.heartRate }
-        .runningFold( initial =  emptyList<Int>()){ currentHeartRates, newHeartRate ->
+        .runningFold(initial = emptyList<Int>()) { currentHeartRates, newHeartRate ->
             currentHeartRates + newHeartRate
-
         }
         .stateIn(
             applicationScope,
             SharingStarted.Lazily,
             emptyList()
         )
+
     init {
         _isTracking
             .onEach { isTracking ->
@@ -112,7 +111,7 @@ class RunningTracker(
                     durationTimestamp = elapsedTime
                 )
             }
-            .combine(heartRate) { location, heartRate ->
+            .combine(heartRates) { location, heartRates ->
                 val currentLocations = runData.value.locations
                 val lastLocationsList = if(currentLocations.isNotEmpty()) {
                     currentLocations.last() + location
@@ -136,15 +135,15 @@ class RunningTracker(
                         distanceMeters = distanceMeters,
                         pace = avgSecondsPerKm.seconds,
                         locations = newLocationsList,
-                        heartRates = heartRate
+                        heartRates = heartRates
                     )
                 }
             }
             .launchIn(applicationScope)
 
         elapsedTime
-            .onEach { elapsedTime ->
-                watchConnector.sendActionToWatch(MessagingAction.TimeUpdate(elapsedTime))
+            .onEach {
+                watchConnector.sendActionToWatch(MessagingAction.TimeUpdate(it))
             }
             .launchIn(applicationScope)
 
@@ -164,7 +163,6 @@ class RunningTracker(
     fun startObservingLocation() {
         isObservingLocation.value = true
         watchConnector.setIsTrackable(true)
-
     }
 
     fun stopObservingLocation() {

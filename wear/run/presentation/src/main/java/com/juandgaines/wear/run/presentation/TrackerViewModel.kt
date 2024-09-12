@@ -1,5 +1,6 @@
 package com.juandgaines.wear.run.presentation
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -51,6 +52,7 @@ class TrackerViewModel(
                 )
             }
             .combine(isTracking) { _, isTracking ->
+                Log.d("WatchRunique", "isTracking: $isTracking")
                 if(!isTracking) {
                     phoneConnector.sendActionToPhone(MessagingAction.ConnectionRequest)
                 }
@@ -66,14 +68,18 @@ class TrackerViewModel(
 
         isTracking
             .onEach { isTracking ->
+                Log.d("WatchRunique", "isTracking: $isTracking")
                 val result = when {
                     isTracking && !state.hasStartedRunning -> {
+                        Log.d("WatchRunique", "startExercise")
                         exerciseTracker.startExercise()
                     }
                     isTracking && state.hasStartedRunning -> {
+                        Log.d("WatchRunique", "resumeExercise")
                         exerciseTracker.resumeExercise()
                     }
                     !isTracking && state.hasStartedRunning -> {
+                        Log.d("WatchRunique", "pauseExercise")
                         exerciseTracker.pauseExercise()
                     }
                     else -> Result.Success(Unit)
@@ -212,5 +218,10 @@ class TrackerViewModel(
                 }
             }
             .launchIn(viewModelScope)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("WatchRunique", "TrackerViewModel cleared")
     }
 }

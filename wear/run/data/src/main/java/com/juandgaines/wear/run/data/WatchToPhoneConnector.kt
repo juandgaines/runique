@@ -2,6 +2,7 @@
 
 package com.juandgaines.wear.run.data
 
+import android.util.Log
 import com.juandgaines.core.connectivity.domain.DeviceNode
 import com.juandgaines.core.connectivity.domain.DeviceType
 import com.juandgaines.core.connectivity.domain.DeviceType.WATCH
@@ -40,8 +41,13 @@ class WatchToPhoneConnector(
             val node = connectedNodes.firstOrNull()
             if(node != null && node.isNearby) {
                 _connectedNode.value = node
+                Log.d("WatchRunique", "Connected node")
                 messagingClient.connectToNode(node.id)
-            } else flowOf()
+
+            } else {
+                Log.d("WatchRunique", "No connected node")
+                flowOf()
+            }
         }
         .shareIn(
             applicationScope,
@@ -49,6 +55,7 @@ class WatchToPhoneConnector(
         )
 
     override suspend fun sendActionToPhone(action: MessagingAction): EmptyResult<MessagingError> {
+        Log.d("WatchRunique", "Sending action to phone: $action")
         return messagingClient.sendOrQueueAction(action)
     }
 }
