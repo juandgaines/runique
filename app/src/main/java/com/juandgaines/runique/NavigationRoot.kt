@@ -11,8 +11,9 @@ import androidx.navigation.navDeepLink
 import com.juandgaines.auth.presentation.intro.IntroScreenRoot
 import com.juandgaines.auth.presentation.login.LoginScreenRoot
 import com.juandgaines.auth.presentation.register.RegisterScreenRoot
+import com.juandgaines.core.notification.service.ActiveRunService
 import com.juandgaines.run.presentation.active_run.ActiveRunScreenRoot
-import com.juandgaines.run.presentation.active_run.service.ActiveRunService
+
 import com.juandgaines.run.presentation.run_overview.RunOverviewScreenRoot
 
 @Composable

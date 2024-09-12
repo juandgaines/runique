@@ -13,4 +13,7 @@ val wearDataModule = module {
     singleOf(::HealthServicesExerciseTracker).bind(ExerciseTracker::class)
     singleOf(::WatchToPhoneConnector).bind<PhoneConnector>()
     singleOf(::RunningTracker)
+    single {
+        get <RunningTracker>().elapsedTime
+    }
 }

@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
   <uses-permission android:name="android.permission.WAKE_LOCK" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
   <uses-feature android:name="android.hardware.type.watch" />
 
   <application
@@ -23,6 +24,7 @@
         android:name="com.google.android.wearable"
         android:required="true" />
 
+    <service android:name="com.juandgaines.core.notification.service.ActiveRunService" />
 
     <activity
         android:name=".presentation.MainActivity"

@@ -12,4 +12,7 @@ val runPresentationModule = module {
     singleOf(::RunningTracker)
     viewModelOf(::RunOverviewViewModel)
     viewModelOf(::ActiveRunViewModel)
+    single {
+        get <RunningTracker>().elapsedTime
+    }
 }
