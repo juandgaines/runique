@@ -81,7 +81,7 @@ fun ActiveRunScreenRoot(
                 }
                 else->Unit
             }
-            viewModel.onAction(action, true)
+            viewModel.onAction(action)
         }
     )
 }
