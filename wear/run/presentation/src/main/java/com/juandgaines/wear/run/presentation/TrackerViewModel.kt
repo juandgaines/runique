@@ -7,22 +7,10 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.juandgaines.core.connectivity.domain.messaging.MessagingAction
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.ConnectionRequest
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.DistanceUpdate
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.Finish
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.HeartRateUpdate
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.Pause
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.StarOrResume
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.TimeUpdate
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.Trackable
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.Untrackable
 import com.juandgaines.core.domain.util.Result
 import com.juandgaines.wear.run.domain.ExerciseTracker
 import com.juandgaines.wear.run.domain.PhoneConnector
 import com.juandgaines.wear.run.domain.RunningTracker
-import com.juandgaines.wear.run.presentation.TrackerAction.OnBodySensorPermissionResult
-import com.juandgaines.wear.run.presentation.TrackerAction.OnFinishRunClick
-import com.juandgaines.wear.run.presentation.TrackerAction.OnToggleRunClick
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,25 +22,21 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion
 
 class TrackerViewModel(
     private val exerciseTracker: ExerciseTracker,
     private val phoneConnector: PhoneConnector,
     private val runningTracker: RunningTracker
-):ViewModel() {
+): ViewModel() {
 
     var state by mutableStateOf(TrackerState())
         private set
+
     private val hasBodySensorPermission = MutableStateFlow(false)
 
     private val isTracking = snapshotFlow {
         state.isRunActive && state.isTrackable && state.isConnectedPhoneNearby
-    }.stateIn(
-        viewModelScope,
-        started = SharingStarted.Lazily,
-        initialValue = false
-    )
+    }.stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     private val eventChannel = Channel<TrackerEvent>()
     val events = eventChannel.receiveAsFlow()
@@ -61,17 +45,20 @@ class TrackerViewModel(
         phoneConnector
             .connectedNode
             .filterNotNull()
-            .onEach { connectedNote->
-                state = state.copy(isConnectedPhoneNearby = connectedNote.isNearby)
+            .onEach { connectedNode ->
+                state = state.copy(
+                    isConnectedPhoneNearby = connectedNode.isNearby
+                )
             }
-            .combine(isTracking){_, isTracking->
-                if(!isTracking){
+            .combine(isTracking) { _, isTracking ->
+                if(!isTracking) {
                     phoneConnector.sendActionToPhone(MessagingAction.ConnectionRequest)
                 }
             }
             .launchIn(viewModelScope)
 
-        runningTracker.isTrackable
+        runningTracker
+            .isTrackable
             .onEach { isTrackable ->
                 state = state.copy(isTrackable = isTrackable)
             }
@@ -79,29 +66,28 @@ class TrackerViewModel(
 
         isTracking
             .onEach { isTracking ->
-                val result = when{
-                    isTracking && !state.hasStartedRunning ->{
+                val result = when {
+                    isTracking && !state.hasStartedRunning -> {
                         exerciseTracker.startExercise()
                     }
-                    isTracking && state.hasStartedRunning ->{
+                    isTracking && state.hasStartedRunning -> {
                         exerciseTracker.resumeExercise()
                     }
-                    !isTracking && state.hasStartedRunning ->{
+                    !isTracking && state.hasStartedRunning -> {
                         exerciseTracker.pauseExercise()
                     }
                     else -> Result.Success(Unit)
                 }
 
-                if (result is Result.Error){
+                if(result is Result.Error) {
                     result.error.toUiText()?.let {
                         eventChannel.send(TrackerEvent.Error(it))
                     }
                 }
 
-                if (isTracking) {
+                if(isTracking) {
                     state = state.copy(hasStartedRunning = true)
                 }
-
                 runningTracker.setTracking(isTracking)
             }
             .launchIn(viewModelScope)
@@ -135,26 +121,27 @@ class TrackerViewModel(
         listenToPhoneActions()
     }
 
-
-
-    fun onAction(action: TrackerAction, triggeredOnPhone:Boolean = false){
-        if (!triggeredOnPhone) {
+    fun onAction(action: TrackerAction, triggeredOnPhone: Boolean = false) {
+        if(!triggeredOnPhone) {
             sendActionToPhone(action)
         }
-        when(action){
-            is OnBodySensorPermissionResult -> {
-                hasBodySensorPermission.value = action.granted
-                if (action.granted) {
+        when(action) {
+            is TrackerAction.OnBodySensorPermissionResult -> {
+                hasBodySensorPermission.value = action.isGranted
+                if(action.isGranted) {
                     viewModelScope.launch {
-                       val isHeartRateTrackingSupported = exerciseTracker.isHeartRateTrackingSupported()
-                          state = state.copy(canTrackHeartRate = isHeartRateTrackingSupported)
+                        val isHeartRateTrackingSupported = exerciseTracker.isHeartRateTrackingSupported()
+                        state = state.copy(
+                            canTrackHeartRate = isHeartRateTrackingSupported
+                        )
                     }
                 }
             }
-            OnFinishRunClick -> {
+            TrackerAction.OnFinishRunClick -> {
                 viewModelScope.launch {
                     exerciseTracker.stopExercise()
                     eventChannel.send(TrackerEvent.RunFinished)
+
                     state = state.copy(
                         elapsedDuration = Duration.ZERO,
                         distanceMeters = 0,
@@ -164,8 +151,8 @@ class TrackerViewModel(
                     )
                 }
             }
-            OnToggleRunClick -> {
-                if (state.isTrackable){
+            TrackerAction.OnToggleRunClick -> {
+                if(state.isTrackable) {
                     state = state.copy(
                         isRunActive = !state.isRunActive
                     )
@@ -174,50 +161,51 @@ class TrackerViewModel(
         }
     }
 
-    private fun sendActionToPhone(action: TrackerAction){
+    private fun sendActionToPhone(action: TrackerAction) {
         viewModelScope.launch {
-            val messagingAction = when(action){
-                OnToggleRunClick -> {
-                    if(state.isRunActive){
+            val messagingAction = when(action) {
+                is TrackerAction.OnFinishRunClick -> MessagingAction.Finish
+                is TrackerAction.OnToggleRunClick -> {
+                    if(state.isRunActive) {
                         MessagingAction.Pause
-                    }
-                    else{
-                        MessagingAction.StarOrResume
+                    } else {
+                        MessagingAction.StartOrResume
                     }
                 }
-                OnFinishRunClick -> MessagingAction.Finish
                 else -> null
             }
 
             messagingAction?.let {
                 val result = phoneConnector.sendActionToPhone(it)
-                if(result is Result.Error){
-                    println( "Tracker Error: ${result.error}")
+                if(result is Result.Error) {
+                    println("Tracker error: ${result.error}")
                 }
             }
         }
-
     }
-    private fun listenToPhoneActions(){
+
+    private fun listenToPhoneActions() {
         phoneConnector
             .messagingActions
             .onEach { action ->
-                when(action){
-                    Finish -> onAction(OnFinishRunClick, true)
-                    Pause ->{
-                        if (state.isTrackable){
+                when(action) {
+                    MessagingAction.Finish -> {
+                        onAction(TrackerAction.OnFinishRunClick, triggeredOnPhone = true)
+                    }
+                    MessagingAction.Pause -> {
+                        if(state.isTrackable) {
                             state = state.copy(isRunActive = false)
                         }
                     }
-                    StarOrResume -> {
-                        if (state.isTrackable){
+                    MessagingAction.StartOrResume -> {
+                        if(state.isTrackable) {
                             state = state.copy(isRunActive = true)
                         }
                     }
-                    Trackable -> {
+                    MessagingAction.Trackable -> {
                         state = state.copy(isTrackable = true)
                     }
-                    Untrackable -> {
+                    MessagingAction.Untrackable -> {
                         state = state.copy(isTrackable = false)
                     }
                     else -> Unit

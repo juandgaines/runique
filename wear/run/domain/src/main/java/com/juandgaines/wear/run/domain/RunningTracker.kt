@@ -3,19 +3,12 @@
 package com.juandgaines.wear.run.domain
 
 import com.juandgaines.core.connectivity.domain.messaging.MessagingAction
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.ConnectionRequest
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.DistanceUpdate
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.Finish
 import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.HeartRateUpdate
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.Pause
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.StarOrResume
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.TimeUpdate
 import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.Trackable
 import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.Untrackable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.SharingStarted.Companion
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
@@ -53,7 +46,7 @@ class RunningTracker(
     val elapsedTime = watchToPhoneConnector
         .messagingActions
         .filterIsInstance<MessagingAction.TimeUpdate>()
-        .map { it.elapsedTime }
+        .map { it.elapsedDuration }
         .stateIn(
             applicationScope,
             SharingStarted.Lazily,

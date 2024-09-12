@@ -3,29 +3,29 @@ package com.juandgaines.core.connectivity.data.messaging
 import com.juandgaines.core.connectivity.domain.messaging.MessagingAction
 
 fun MessagingAction.toMessagingActionDto(): MessagingActionDto {
-    return when (this) {
-        is MessagingAction.StarOrResume -> MessagingActionDto.StarOrResume
-        is MessagingAction.Pause -> MessagingActionDto.Pause
-        is MessagingAction.Finish -> MessagingActionDto.Finish
-        is MessagingAction.Trackable -> MessagingActionDto.Trackable
-        is MessagingAction.Untrackable -> MessagingActionDto.Untrackable
-        is MessagingAction.ConnectionRequest -> MessagingActionDto.ConnectionRequest
-        is MessagingAction.HeartRateUpdate -> MessagingActionDto.HeartRateUpdate(heartRate)
+    return when(this) {
+        MessagingAction.ConnectionRequest -> MessagingActionDto.ConnectionRequest
         is MessagingAction.DistanceUpdate -> MessagingActionDto.DistanceUpdate(distanceMeters)
-        is MessagingAction.TimeUpdate -> MessagingActionDto.TimeUpdate(elapsedTime)
+        MessagingAction.Finish -> MessagingActionDto.Finish
+        is MessagingAction.HeartRateUpdate -> MessagingActionDto.HeartRateUpdate(heartRate)
+        MessagingAction.Pause -> MessagingActionDto.Pause
+        MessagingAction.StartOrResume -> MessagingActionDto.StartOrResume
+        is MessagingAction.TimeUpdate -> MessagingActionDto.TimeUpdate(elapsedDuration)
+        MessagingAction.Trackable -> MessagingActionDto.Trackable
+        MessagingAction.Untrackable -> MessagingActionDto.Untrackable
     }
 }
 
 fun MessagingActionDto.toMessagingAction(): MessagingAction {
-    return when (this) {
-        is MessagingActionDto.StarOrResume -> MessagingAction.StarOrResume
-        is MessagingActionDto.Pause -> MessagingAction.Pause
-        is MessagingActionDto.Finish -> MessagingAction.Finish
-        is MessagingActionDto.Trackable -> MessagingAction.Trackable
-        is MessagingActionDto.Untrackable -> MessagingAction.Untrackable
-        is MessagingActionDto.ConnectionRequest -> MessagingAction.ConnectionRequest
-        is MessagingActionDto.HeartRateUpdate -> MessagingAction.HeartRateUpdate(heartRate)
+    return when(this) {
+        MessagingActionDto.ConnectionRequest -> MessagingAction.ConnectionRequest
         is MessagingActionDto.DistanceUpdate -> MessagingAction.DistanceUpdate(distanceMeters)
-        is MessagingActionDto.TimeUpdate -> MessagingAction.TimeUpdate(elapsedTime)
+        MessagingActionDto.Finish -> MessagingAction.Finish
+        is MessagingActionDto.HeartRateUpdate -> MessagingAction.HeartRateUpdate(heartRate)
+        MessagingActionDto.Pause -> MessagingAction.Pause
+        MessagingActionDto.StartOrResume -> MessagingAction.StartOrResume
+        is MessagingActionDto.TimeUpdate -> MessagingAction.TimeUpdate(elapsedDuration)
+        MessagingActionDto.Trackable -> MessagingAction.Trackable
+        MessagingActionDto.Untrackable -> MessagingAction.Untrackable
     }
 }

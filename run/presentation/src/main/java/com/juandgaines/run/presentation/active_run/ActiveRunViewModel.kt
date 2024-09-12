@@ -6,11 +6,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction
 import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.ConnectionRequest
 import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.Finish
 import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.Pause
-import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.StarOrResume
+import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.StartOrResume
 import com.juandgaines.core.connectivity.domain.messaging.MessagingAction.Untrackable
 import com.juandgaines.core.domain.location.Location
 import com.juandgaines.core.domain.run.Run
@@ -136,6 +135,7 @@ class ActiveRunViewModel(
             }.launchIn(
                 viewModelScope
             )
+        listenToWatchActions()
     }
 
     fun onAction(
@@ -145,12 +145,12 @@ class ActiveRunViewModel(
         if (!triggeredOnWatch){
             val messagingAction = when(action){
                 OnFinishRunClick -> Finish
-                OnResumeRunClick -> StarOrResume
+                OnResumeRunClick -> StartOrResume
                 OnToggleRunClick ->{
                     if (state.hasStartedRunning){
                         Pause
                     }else{
-                        StarOrResume
+                        StartOrResume
                     }
                 }
                 else -> null
@@ -259,7 +259,7 @@ class ActiveRunViewModel(
                 when(action){
                     ConnectionRequest -> {
                         if (isTracking.value){
-                            watchConnector.sendActionToWatch(StarOrResume)
+                            watchConnector.sendActionToWatch(StartOrResume)
                         }
                     }
                     Finish -> {
@@ -276,7 +276,7 @@ class ActiveRunViewModel(
                             )
                         }
                     }
-                    StarOrResume -> {
+                    StartOrResume -> {
                         if (!isTracking.value){
                             if (state.hasStartedRunning) {
                                 onAction(

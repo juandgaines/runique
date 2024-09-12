@@ -1,4 +1,6 @@
-@file:OptIn(ExperimentalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+@file:OptIn(ExperimentalCoroutinesApi::class, ExperimentalCoroutinesApi::class,
+    ExperimentalCoroutinesApi::class
+)
 
 package com.juandgaines.run.domain
 
@@ -161,10 +163,13 @@ class RunningTracker(
 
     fun startObservingLocation() {
         isObservingLocation.value = true
+        watchConnector.setIsTrackable(true)
+
     }
 
     fun stopObservingLocation() {
         isObservingLocation.value = false
+        watchConnector.setIsTrackable(false)
     }
 
     fun finishRun() {

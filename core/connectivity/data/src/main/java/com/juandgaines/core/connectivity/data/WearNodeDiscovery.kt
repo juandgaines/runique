@@ -14,37 +14,36 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class WearNodeDiscovery(
-    private val context: Context
+    context: Context
 ): NodeDiscovery {
 
     private val capabilityClient = Wearable.getCapabilityClient(context)
 
     override fun observeConnectedDevices(localDeviceType: DeviceType): Flow<Set<DeviceNode>> {
-       return callbackFlow {
-           val remoteCapability = when(localDeviceType) {
-               DeviceType.PHONE -> "runique_wear_app"
-               DeviceType.WATCH -> "runique_phone_app"
-           }
+        return callbackFlow {
+            val remoteCapability = when(localDeviceType) {
+                DeviceType.PHONE -> "runique_wear_app"
+                DeviceType.WATCH -> "runique_phone_app"
+            }
+            try {
+                val capability = capabilityClient
+                    .getCapability(remoteCapability, CapabilityClient.FILTER_REACHABLE)
+                    .await()
+                val connectedDevices = capability.nodes.map { it.toDeviceNode() }.toSet()
+                send(connectedDevices)
+            } catch(e: ApiException) {
+                awaitClose()
+                return@callbackFlow
+            }
 
-           try {
-               val capability = capabilityClient
-                   .getCapability(remoteCapability, CapabilityClient.FILTER_REACHABLE)
-                   .await()
-               val connectedDevices = capability.nodes.map { it.toDeviceNode() }.toSet()
-               send(connectedDevices)
-           }
-           catch (e:ApiException){
-               awaitClose()
-               return@callbackFlow
-           }
-           val listener:(CapabilityInfo)-> Unit = { capabilityInfo ->
-               trySend(capabilityInfo.nodes.map { it.toDeviceNode() }.toSet())
-           }
-           capabilityClient.addListener(listener, remoteCapability)
+            val listener: (CapabilityInfo) -> Unit = {
+                trySend(it.nodes.map { it.toDeviceNode() }.toSet())
+            }
+            capabilityClient.addListener(listener, remoteCapability)
 
-           awaitClose {
-               capabilityClient.removeListener(listener, remoteCapability)
-           }
-       }
+            awaitClose {
+                capabilityClient.removeListener(listener)
+            }
+        }
     }
 }

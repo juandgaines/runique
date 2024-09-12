@@ -1,6 +1,9 @@
 package com.juandgaines.wear.run.data
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.os.BuildCompat
 import androidx.health.services.client.ExerciseUpdateCallback
@@ -36,9 +39,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
 import kotlin.math.roundToInt
 
-class HealthServicesExerciseTracker (
+class HealthServicesExerciseTracker(
     private val context: Context
-): ExerciseTracker{
+): ExerciseTracker {
 
     private val client = HealthServices.getClient(context).exerciseClient
 
@@ -47,26 +50,32 @@ class HealthServicesExerciseTracker (
             val callback = object : ExerciseUpdateCallback {
                 override fun onAvailabilityChanged(
                     dataType: DataType<*, *>,
-                    availability: Availability,
+                    availability: Availability
                 ) = Unit
+
                 override fun onExerciseUpdateReceived(update: ExerciseUpdate) {
-                    val heartRate = update.latestMetrics.getData(DataType.HEART_RATE_BPM)
-                    val currentHearRate = heartRate.firstOrNull()?.value
-                    currentHearRate?.let {
-                        trySend(currentHearRate.roundToInt())
+                    val heartRates = update.latestMetrics.getData(DataType.HEART_RATE_BPM)
+                    val currentHeartRate = heartRates.firstOrNull()?.value
+
+                    currentHeartRate?.let {
+                        trySend(currentHeartRate.roundToInt())
                     }
                 }
 
                 override fun onLapSummaryReceived(lapSummary: ExerciseLapSummary) = Unit
 
-                override fun onRegistered()= Unit
+                override fun onRegistered() = Unit
 
                 override fun onRegistrationFailed(throwable: Throwable) {
+                    if(BuildConfig.DEBUG) {
                         throwable.printStackTrace()
+                    }
                 }
             }
+
             client.setUpdateCallback(callback)
-            awaitClose{
+
+            awaitClose {
                 runBlocking {
                     client.clearUpdateCallback(callback)
                 }
@@ -74,108 +83,129 @@ class HealthServicesExerciseTracker (
         }.flowOn(Dispatchers.IO)
 
     override suspend fun isHeartRateTrackingSupported(): Boolean {
-        return hasBodySensorsPermission() &&  kotlin.runCatching {
+        return hasBodySensorsPermission() && runCatching {
             val capabilities = client.getCapabilities()
-            val supportedDataTypes = capabilities.typeToCapabilities[ExerciseType.RUNNING]?.supportedDataTypes?: setOf()
+            val supportedDataTypes = capabilities
+                .typeToCapabilities[ExerciseType.RUNNING]
+                ?.supportedDataTypes ?: setOf()
 
             DataType.HEART_RATE_BPM in supportedDataTypes
         }.getOrDefault(false)
     }
 
     override suspend fun prepareExercise(): EmptyResult<ExerciseError> {
-        if (!isHeartRateTrackingSupported()) return Result.Error(ExerciseError.TRACKING_NOT_SUPPORTED)
+        if(!isHeartRateTrackingSupported()) {
+            return Result.Error(ExerciseError.TRACKING_NOT_SUPPORTED)
+        }
 
         val result = getActiveExerciseInfo()
-        if (result is Result.Error) return result
+        if(result is Result.Error) {
+            return result
+        }
 
         val config = WarmUpConfig(
             exerciseType = ExerciseType.RUNNING,
             dataTypes = setOf(DataType.HEART_RATE_BPM)
         )
-
         client.prepareExercise(config)
+
         return Result.Success(Unit)
     }
 
     override suspend fun startExercise(): EmptyResult<ExerciseError> {
-        if (!isHeartRateTrackingSupported()) return Result.Error(ExerciseError.TRACKING_NOT_SUPPORTED)
+        if(!isHeartRateTrackingSupported()) {
+            return Result.Error(ExerciseError.TRACKING_NOT_SUPPORTED)
+        }
 
         val result = getActiveExerciseInfo()
-        if (result is Result.Error) return result
+        if(result is Result.Error) {
+            return result
+        }
 
-        val config = ExerciseConfig.builder(Companion.RUNNING)
+        val config = ExerciseConfig.builder(ExerciseType.RUNNING)
             .setDataTypes(setOf(DataType.HEART_RATE_BPM))
             .setIsAutoPauseAndResumeEnabled(false)
             .build()
-
         client.startExercise(config)
+
         return Result.Success(Unit)
     }
 
     override suspend fun resumeExercise(): EmptyResult<ExerciseError> {
-        if (!isHeartRateTrackingSupported()) return Result.Error(ExerciseError.TRACKING_NOT_SUPPORTED)
+        if(!isHeartRateTrackingSupported()) {
+            return Result.Error(ExerciseError.TRACKING_NOT_SUPPORTED)
+        }
 
         val result = getActiveExerciseInfo()
-        if (result is Result.Error && result.error ==ExerciseError.ONGOING_OTHER_EXERCISE)
+        if(result is Result.Error && result.error == ExerciseError.ONGOING_OTHER_EXERCISE) {
             return result
+        }
 
         return try {
             client.resumeExercise()
             Result.Success(Unit)
-        }
-        catch (e:HealthServicesException){
+        } catch (e: HealthServicesException) {
             Result.Error(ExerciseError.EXERCISE_ALREADY_ENDED)
         }
     }
 
     override suspend fun pauseExercise(): EmptyResult<ExerciseError> {
-        if (!isHeartRateTrackingSupported()) return Result.Error(ExerciseError.TRACKING_NOT_SUPPORTED)
+        if(!isHeartRateTrackingSupported()) {
+            return Result.Error(ExerciseError.TRACKING_NOT_SUPPORTED)
+        }
 
         val result = getActiveExerciseInfo()
-        if (result is Result.Error && result.error ==ExerciseError.ONGOING_OTHER_EXERCISE)
+        if(result is Result.Error && result.error == ExerciseError.ONGOING_OTHER_EXERCISE) {
             return result
+        }
 
         return try {
             client.pauseExercise()
             Result.Success(Unit)
-        }
-        catch (e:HealthServicesException){
+        } catch (e: HealthServicesException) {
             Result.Error(ExerciseError.EXERCISE_ALREADY_ENDED)
         }
     }
 
     override suspend fun stopExercise(): EmptyResult<ExerciseError> {
-        if (!isHeartRateTrackingSupported()) return Result.Error(ExerciseError.TRACKING_NOT_SUPPORTED)
+        if(!isHeartRateTrackingSupported()) {
+            return Result.Error(ExerciseError.TRACKING_NOT_SUPPORTED)
+        }
 
         val result = getActiveExerciseInfo()
-        if (result is Result.Error && result.error ==ExerciseError.ONGOING_OTHER_EXERCISE)
+        if(result is Result.Error && result.error == ExerciseError.ONGOING_OTHER_EXERCISE) {
             return result
+        }
 
         return try {
             client.endExercise()
             Result.Success(Unit)
-        }
-        catch (e:HealthServicesException){
+        } catch (e: HealthServicesException) {
             Result.Error(ExerciseError.EXERCISE_ALREADY_ENDED)
         }
     }
 
-    private suspend fun getActiveExerciseInfo():EmptyResult<ExerciseError>{
+    @SuppressLint("RestrictedApi")
+    private suspend fun getActiveExerciseInfo(): EmptyResult<ExerciseError> {
         val info = client.getCurrentExerciseInfo()
-        return when(info.exerciseTrackedStatus){
-            ExerciseTrackedStatus.NO_EXERCISE_IN_PROGRESS-> Result.Success(Unit)
-            ExerciseTrackedStatus.OWNED_EXERCISE_IN_PROGRESS-> Result.Error(ExerciseError.ONGOING_OWN_EXERCISE)
-            ExerciseTrackedStatus.OTHER_APP_IN_PROGRESS-> Result.Error(ExerciseError.ONGOING_OTHER_EXERCISE)
-            else-> Result.Error(ExerciseError.UNKNOWN)
+        return when(info.exerciseTrackedStatus) {
+            ExerciseTrackedStatus.NO_EXERCISE_IN_PROGRESS -> Result.Success(Unit)
+            ExerciseTrackedStatus.OWNED_EXERCISE_IN_PROGRESS -> {
+                Result.Error(ExerciseError.ONGOING_OWN_EXERCISE)
+            }
+            ExerciseTrackedStatus.OTHER_APP_IN_PROGRESS -> {
+                Result.Error(ExerciseError.ONGOING_OTHER_EXERCISE)
+            }
+            else -> {
+                Result.Error(ExerciseError.UNKNOWN)
+            }
         }
-
     }
 
     private fun hasBodySensorsPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             context,
-            android.Manifest.permission.BODY_SENSORS
-        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-
+            Manifest.permission.BODY_SENSORS
+        ) == PackageManager.PERMISSION_GRANTED
     }
 }
