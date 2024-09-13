@@ -1,3 +1,5 @@
+@file:Suppress("OPT_IN_USAGE", "NAME_SHADOWING")
+
 package com.juandgaines.wear.run.presentation
 
 import android.util.Log
@@ -13,17 +15,26 @@ import com.juandgaines.core.notification.service.ActiveRunService
 import com.juandgaines.wear.run.domain.ExerciseTracker
 import com.juandgaines.wear.run.domain.PhoneConnector
 import com.juandgaines.wear.run.domain.RunningTracker
+import com.juandgaines.wear.run.presentation.TrackerAction.OnBodySensorPermissionResult
+import com.juandgaines.wear.run.presentation.TrackerAction.OnEnterAmbientMode
+import com.juandgaines.wear.run.presentation.TrackerAction.OnExitAmbientMode
+import com.juandgaines.wear.run.presentation.TrackerAction.OnFinishRunClick
+import com.juandgaines.wear.run.presentation.TrackerAction.OnToggleRunClick
+import com.juandgaines.wear.run.presentation.TrackerEvent.RunFinished
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class TrackerViewModel(
     private val exerciseTracker: ExerciseTracker,
@@ -39,6 +50,10 @@ class TrackerViewModel(
         private set
 
     private val hasBodySensorPermission = MutableStateFlow(false)
+
+
+
+
 
     private val isTracking = snapshotFlow {
         state.isRunActive && state.isTrackable && state.isConnectedPhoneNearby
@@ -57,12 +72,13 @@ class TrackerViewModel(
                 )
             }
             .combine(isTracking) { _, isTracking ->
-                Log.d("WatchRunique", "isTracking: $isTracking")
                 if(!isTracking) {
                     phoneConnector.sendActionToPhone(MessagingAction.ConnectionRequest)
                 }
             }
             .launchIn(viewModelScope)
+
+
 
         runningTracker
             .isTrackable
@@ -73,18 +89,14 @@ class TrackerViewModel(
 
         isTracking
             .onEach { isTracking ->
-                Log.d("WatchRunique", "isTracking: $isTracking")
                 val result = when {
                     isTracking && !state.hasStartedRunning -> {
-                        Log.d("WatchRunique", "startExercise")
                         exerciseTracker.startExercise()
                     }
                     isTracking && state.hasStartedRunning -> {
-                        Log.d("WatchRunique", "resumeExercise")
                         exerciseTracker.resumeExercise()
                     }
                     !isTracking && state.hasStartedRunning -> {
-                        Log.d("WatchRunique", "pauseExercise")
                         exerciseTracker.pauseExercise()
                     }
                     else -> Result.Success(Unit)
@@ -108,22 +120,53 @@ class TrackerViewModel(
             state = state.copy(canTrackHeartRate = isHeartRateTrackingSupported)
         }
 
-        runningTracker
-            .heartRate
+        val isAmbientMode = snapshotFlow {
+            state.isAmbientMode
+        }
+
+        isAmbientMode
+            .flatMapLatest { isAmbientMode ->
+                if(isAmbientMode) {
+                    runningTracker
+                        .heartRate
+                        .sample(10.seconds)
+                }
+                else {
+                    runningTracker.heartRate
+                }
+            }
             .onEach {
                 state = state.copy(heartRate = it)
             }
             .launchIn(viewModelScope)
 
-        runningTracker
-            .distanceMeters
+        isAmbientMode
+            .flatMapLatest { isAmbientMode ->
+                if(isAmbientMode) {
+                    runningTracker
+                        .distanceMeters
+                        .sample(10.seconds)
+                }
+                else {
+                    runningTracker.distanceMeters
+                }
+            }
             .onEach {
                 state = state.copy(distanceMeters = it)
             }
             .launchIn(viewModelScope)
 
-        runningTracker
-            .elapsedTime
+        isAmbientMode
+            .flatMapLatest { isAmbientMode ->
+                if(isAmbientMode) {
+                    runningTracker
+                        .elapsedTime
+                        .sample(10.seconds)
+                }
+                else {
+                    runningTracker.elapsedTime
+                }
+            }
             .onEach {
                 state = state.copy(elapsedDuration = it)
             }
@@ -137,7 +180,7 @@ class TrackerViewModel(
             sendActionToPhone(action)
         }
         when(action) {
-            is TrackerAction.OnBodySensorPermissionResult -> {
+            is OnBodySensorPermissionResult -> {
                 hasBodySensorPermission.value = action.isGranted
                 if(action.isGranted) {
                     viewModelScope.launch {
@@ -148,10 +191,10 @@ class TrackerViewModel(
                     }
                 }
             }
-            TrackerAction.OnFinishRunClick -> {
+            OnFinishRunClick -> {
                 viewModelScope.launch {
                     exerciseTracker.stopExercise()
-                    eventChannel.send(TrackerEvent.RunFinished)
+                    eventChannel.send(RunFinished)
 
                     state = state.copy(
                         elapsedDuration = Duration.ZERO,
@@ -162,12 +205,24 @@ class TrackerViewModel(
                     )
                 }
             }
-            TrackerAction.OnToggleRunClick -> {
+            OnToggleRunClick -> {
                 if(state.isTrackable) {
                     state = state.copy(
                         isRunActive = !state.isRunActive
                     )
                 }
+            }
+
+            is OnEnterAmbientMode -> {
+                state = state.copy(
+                    isAmbientMode = true,
+                    burnInProtectionRequired = action.burnInProtectionRequired
+                )
+            }
+            OnExitAmbientMode -> {
+                state = state.copy(
+                    isAmbientMode = false,
+                )
             }
         }
     }
