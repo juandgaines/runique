@@ -5,6 +5,7 @@ import android.content.Context
 import com.google.android.play.core.splitcompat.SplitCompat
 import com.juandgaines.auth.data.di.authModuleData
 import com.juandgaines.auth.presentation.di.authViewModelModule
+import com.juandgaines.core.connectivity.di.coreConnectivityDataModule
 import com.juandgaines.core.data.di.coreDataModule
 import com.juandgaines.core.database.di.databaseModule
 import com.juandgaines.run.di.runDataModule
@@ -44,6 +45,7 @@ class RuniqueApp:Application() {
                 databaseModule,
                 networkModule,
                 runDataModule,
+                coreConnectivityDataModule
             )
         }
     }

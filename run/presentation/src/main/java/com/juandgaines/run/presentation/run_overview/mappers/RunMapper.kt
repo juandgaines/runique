@@ -2,6 +2,7 @@ package com.juandgaines.run.presentation.run_overview.mappers
 
 import com.juandgaines.core.domain.run.Run
 import com.juandgaines.core.presentation.ui.formatted
+import com.juandgaines.core.presentation.ui.toFormattedHeartRate
 import com.juandgaines.core.presentation.ui.toFormattedKm
 import com.juandgaines.core.presentation.ui.toFormattedKmh
 import com.juandgaines.core.presentation.ui.toFormattedMeters
@@ -28,6 +29,8 @@ fun Run.toRunUi(): RunUi {
         maxSpeed = maxSpeedKmh.toFormattedKmh(),
         pace = duration.toFormattedPace(distanceKm),
         totalElevation = totalElevationMeters.toFormattedMeters(),
-        mapPictureUrl = mapPictureUrl
+        mapPictureUrl = mapPictureUrl,
+        avgHeartRate = avgHeartRate.toFormattedHeartRate(),
+        maxHeartRate = maxHeartRate.toFormattedHeartRate()
     )
 }

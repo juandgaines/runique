@@ -24,8 +24,8 @@ fun RuniqueDialog(
     title: String,
     onDismiss: () -> Unit,
     description: String,
-    primaryButton : @Composable RowScope.() -> Unit,
-    secondaryButton : @Composable RowScope.() -> Unit,
+    primaryButton: @Composable RowScope.() -> Unit,
+    secondaryButton: @Composable RowScope.() -> Unit = {}
 ) {
     // Implementation
     Dialog(onDismissRequest = onDismiss) {
