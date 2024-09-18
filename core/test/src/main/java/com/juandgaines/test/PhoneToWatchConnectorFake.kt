@@ -29,7 +29,7 @@ class PhoneToWatchConnectorFake :WatchConnector {
         get() = _messagingActions.asSharedFlow()
 
     override suspend fun sendActionToWatch(action: MessagingAction): EmptyResult<MessagingError> {
-        return if (sendError != null){
+        return if (sendError == null){
             Result.Success(Unit)
         }
         else{
@@ -41,7 +41,7 @@ class PhoneToWatchConnectorFake :WatchConnector {
         this._isTrackable.value = isTrackable
     }
 
-    suspend fun sendTFromWatchToPhone(action: MessagingAction){
+    suspend fun sendFromWatchToPhone(action: MessagingAction){
         _messagingActions.emit(action)
     }
 }

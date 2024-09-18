@@ -18,6 +18,7 @@ class JvmJUnit5ConventionPlugin:Plugin<Project> {
 
                 "testImplementation"(libs.findLibrary("assertk").get())
                 "testImplementation"(libs.findLibrary("turbine").get())
+                "testImplementation"(libs.findLibrary("coroutines.test").get())
             }
         }
     }
