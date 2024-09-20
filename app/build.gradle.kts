@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.mapsplatform.secrets.plugin)
     alias(libs.plugins.runique.android.application.compose)
     alias(libs.plugins.runique.jvm.ktor)
+    alias(libs.plugins.runique.android.junit5)
 }
 
 android {
@@ -84,8 +85,9 @@ dependencies {
     implementation(projects.run.network)
 
     implementation(projects.core.connectivity.domain)
+    implementation(projects.core.notification)
     implementation(projects.core.connectivity.data)
 
-    implementation(projects.core.notification)
+
 
 }
