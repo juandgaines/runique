@@ -71,6 +71,7 @@ fun ActiveRunScreenRoot(
             ActiveRunEvent.RunSaved -> onFinish()
         }
     }
+
     ActiveRunScreen(
         state = viewModel.state,
         onServiceToggle = onServiceToggle,

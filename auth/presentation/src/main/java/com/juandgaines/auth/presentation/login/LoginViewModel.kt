@@ -61,12 +61,13 @@ class LoginViewModel(
 
     private fun login(){
         viewModelScope.launch {
-            state = state.copy(isLoggingIn = true)
 
+            state = state.copy(isLoggingIn = true)
             val result = authRepository.login(
                 state.email.text.toString().trim(),
                 state.password.text.toString()
             )
+
             state = state.copy(isLoggingIn = false)
             when (result){
                 is Result.Error -> {
